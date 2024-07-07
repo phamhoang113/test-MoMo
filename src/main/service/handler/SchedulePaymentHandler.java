@@ -3,6 +3,7 @@ package main.service.handler;
 import main.dto.BillDto;
 import main.dto.PaymentBillDto;
 import main.dto.UserDto;
+import main.enumerate.BillStatusEnum;
 import main.enumerate.PaymentStatusEnum;
 import main.exception.ErrorInputException;
 import main.request.SchedulePaymentRequest;
@@ -19,7 +20,9 @@ public class SchedulePaymentHandler implements BaseHandler<SchedulePaymentReques
     public void execute(UserDto userDto, SchedulePaymentRequest request) throws ErrorInputException {
         try {
             BillDto billPayment = BillService.findBillById(userDto.getBills(), Long.parseLong(request.getParams()[1]));
-
+            if(billPayment.getStatus()== BillStatusEnum.PAID) {
+                throw new ErrorInputException("Bill is paid before");
+            }
             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
             Date datePayment = formatter.parse(request.getParams()[2]);
 

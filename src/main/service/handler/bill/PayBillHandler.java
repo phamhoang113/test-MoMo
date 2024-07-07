@@ -5,6 +5,7 @@ import main.dto.PaymentBillDto;
 import main.dto.UserDto;
 import main.enumerate.BillStatusEnum;
 import main.enumerate.PaymentStatusEnum;
+import main.enumerate.TypeInputEnum;
 import main.exception.ErrorInputException;
 import main.request.bill.PayBillRequest;
 import main.service.BaseHandler;
@@ -22,7 +23,7 @@ public class PayBillHandler implements BaseHandler<PayBillRequest> {
         }
 
          for(String s: request.getParams()){
-             if(!s.equalsIgnoreCase("pay")){
+             if(!s.equalsIgnoreCase(TypeInputEnum.PAY_BILL.name())){
                  try {
                      long billId = Long.parseLong(s);
                      boolean isHaveInvoice = false;
@@ -32,6 +33,8 @@ public class PayBillHandler implements BaseHandler<PayBillRequest> {
                             if(userDto.getAvailableBalance().compareTo(b.getAmount())>=0){
                                 userDto.setAvailableBalance(userDto.getAvailableBalance().subtract(b.getAmount()));
                                 b.setStatus(BillStatusEnum.PAID);
+                                System.out.printf("Payment has been completed for Bill with id %s%n", b.getId());
+                                System.out.printf("Your current balance is: %s%n", userDto.getAvailableBalance().toPlainString());
                                 updateInforPayment(userDto, b);
                             }
                             else{
@@ -44,7 +47,7 @@ public class PayBillHandler implements BaseHandler<PayBillRequest> {
                      }
                  }
                  catch(Exception e){
-                     throw new ErrorInputException("Format delete bill is: \"PAY List Bill_Id\"");
+                     throw new ErrorInputException("Format delete bill is: \"PAY_BILL List Bill_Id\"");
                  }
 
              }
@@ -61,7 +64,7 @@ public class PayBillHandler implements BaseHandler<PayBillRequest> {
                 break;
             }
         }
-        if(isHaveInvoiceInPayment){
+        if(!isHaveInvoiceInPayment){
             PaymentBillDto paymentBillDto = new PaymentBillDto(b.getAmount(), new Date(), PaymentStatusEnum.PROCESSED, b);
            userDto.setPaymentsBills(UtilService.addElement(userDto.getPaymentsBills(), paymentBillDto, PaymentBillDto.class));
         }

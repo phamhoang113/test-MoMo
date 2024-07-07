@@ -48,7 +48,11 @@ public class CreateBillHandler implements BaseHandler<CreateBillRequest> {
             }
 
             return new BillDto(serviceDto, amount, dueDate, providerDto);
-        } catch (Exception e) {
+        }
+        catch (ErrorInputException e){
+            throw e;
+        }
+        catch (Exception e) {
             throw new ErrorInputException("Format create bill is: \"CREATE_BILL service amount due_date provider\"");
         }
     }

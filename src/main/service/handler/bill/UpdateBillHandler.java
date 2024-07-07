@@ -56,7 +56,11 @@ public class UpdateBillHandler implements BaseHandler<UpdateBillRequest> {
             billDto.setProvider(providerDto);
             billDto.setAmount(amount);
             billDto.setDueDate(dueDate);
-        } catch (Exception e) {
+        }
+        catch (ErrorInputException e){
+            throw e;
+        }
+        catch (Exception e) {
             throw new ErrorInputException("Format update bill is: \"UPDATE_BILL bill_id service amount due_date provider\"");
         }
     }
