@@ -19,6 +19,18 @@ public class CreateBillHandler implements BaseHandler<CreateBillRequest> {
     @Override
     public void execute(UserDto userDto, CreateBillRequest request) throws ErrorInputException {
         try {
+            BillDto billDto = createBillFromRequest(request);
+            userDto.setBills(UtilService.addElement(userDto.getBills(), billDto, BillDto.class));
+            System.out.println("Create bill successful");
+        } catch (ErrorInputException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ErrorInputException("Format create bill is: \"CREATE_BILL service amount due_date provider\"");
+        }
+    }
+
+    private BillDto createBillFromRequest(CreateBillRequest request) throws ErrorInputException {
+        try {
             String service = request.getParams()[1];
             BigDecimal amount = new BigDecimal(request.getParams()[2]);
             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
@@ -35,16 +47,8 @@ public class CreateBillHandler implements BaseHandler<CreateBillRequest> {
                 throw new ErrorInputException("Provider not found");
             }
 
-            BillDto billDto = new BillDto(serviceDto, amount, dueDate, providerDto);
-
-            userDto.setBills(UtilService.addElement(userDto.getBills(), billDto, BillDto.class));
-
-            System.out.println("Create bill successful");
-        }
-        catch (ErrorInputException e){
-            throw e;
-        }
-        catch(Exception e){
+            return new BillDto(serviceDto, amount, dueDate, providerDto);
+        } catch (Exception e) {
             throw new ErrorInputException("Format create bill is: \"CREATE_BILL service amount due_date provider\"");
         }
     }

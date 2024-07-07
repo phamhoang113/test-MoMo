@@ -6,46 +6,45 @@ import main.dto.UserDto;
 import main.exception.ErrorInputException;
 import main.request.bill.SearchBillByProviderRequest;
 import main.service.BaseHandler;
+import main.service.BillService;
 import main.service.ProviderService;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.util.Arrays;
 
 public class SearchBillByProviderHandler implements BaseHandler<SearchBillByProviderRequest> {
 
-    private static final String PATTERN_LINE = "%-15s %-15s %-15s %-15s %-15s %s%n";
 
     @Override
     public void execute(UserDto userDto, SearchBillByProviderRequest request) throws ErrorInputException {
         try {
-            BillDto[] billDtos = userDto.getBills();
-            if (billDtos.length == 0) {
-                throw new ErrorInputException("Sorry! Not found a bill with such provider");
-            }
-
-            String provider = request.getParams()[1];
-            ProviderDto providerDto = ProviderService.getProviderDto(provider);
-            if(null == providerDto) {
-                throw new ErrorInputException("Sorry! Not found a provider with such provider");
-            }
-
-            System.out.printf(PATTERN_LINE, "Bill No.", "Type", "Amount", "Due Date", "Status", "Provider");
-            DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-            for(BillDto billDto: userDto.getBills()){
-                if(billDto.getProvider().equals(providerDto)) {
-                    System.out.printf(PATTERN_LINE, billDto.getId(), billDto.getService().getName(),
-                            billDto.getAmount().toPlainString(), dateFormat.format(billDto.getDueDate()),
-                            billDto.getStatus(),
-                            billDto.getProvider().getName());
-                }
-            }
-
-        }
-        catch (ErrorInputException e){
+            String providerName = request.getParams()[1];
+            BillDto[] bills = findBillsByProvider(userDto, providerName);
+            BillService.printBills(bills);
+        } catch (ErrorInputException e) {
             throw e;
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             throw new ErrorInputException("Format search by provider is: \"SEARCH_BILL_BY_PROVIDER provider\"");
         }
+    }
+
+    private BillDto[] findBillsByProvider(UserDto userDto, String providerName) throws ErrorInputException {
+        ProviderDto providerDto = ProviderService.getProviderDto(providerName);
+        if (providerDto == null) {
+            throw new ErrorInputException("Sorry! Not found a provider with such name");
+        }
+
+        BillDto[] bills = userDto.getBills();
+        BillDto[] result = new BillDto[bills.length];
+        int count = 0;
+        for (BillDto billDto : bills) {
+            if (billDto.getProvider().equals(providerDto)) {
+                result[count++] = billDto;
+            }
+        }
+
+        if (count == 0) {
+            throw new ErrorInputException("Sorry! Not found any bill with provider: " + providerName);
+        }
+
+        return Arrays.copyOf(result, count);
     }
 }
